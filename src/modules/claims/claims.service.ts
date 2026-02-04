@@ -1,44 +1,31 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
+import { ClaimsClient } from "../integrations/claims/claims.client";
+import {
+  toClaimDetails,
+  toClaimSummary,
+} from "../integrations/claims/claims.mapper";
 import { GetClaimsQueryDto } from "./dto/get-claims.query";
-import { ClaimsDownstreamClient } from "../integrations/clients/claims-downstream.client";
 
 @Injectable()
 export class ClaimsService {
-  constructor(private readonly downstream: ClaimsDownstreamClient) {}
+  constructor(private readonly claimsClient: ClaimsClient) {}
 
   async listClaims(query: GetClaimsQueryDto, requestId?: string) {
-    const data = await this.downstream.listClaims(
+    const ds = await this.claimsClient.list(
       { page: query.page ?? 1, limit: query.limit ?? 20, status: query.status },
       requestId,
     );
 
-    // Map downstream shape -> FE-friendly contract (anti-corruption layer)
     return {
-      items: data.items.map((c) => ({
-        id: c.claimId,
-        status: c.status,
-        createdAt: c.createdAt,
-        amount: c.amount,
-      })),
-      page: data.page,
-      limit: data.limit,
-      total: data.total,
+      items: ds.items.map(toClaimSummary),
+      page: ds.page,
+      limit: ds.limit,
+      total: ds.total,
     };
   }
 
   async getClaimById(id: string, requestId?: string) {
-    const data = await this.downstream.getClaimById(id, requestId);
-
-    if (!data) {
-      throw new NotFoundException(`Claim ${id} not found`);
-    }
-
-    return {
-      id: data.claimId,
-      status: data.status,
-      createdAt: data.createdAt,
-      amount: data.amount,
-      claimant: data.claimant,
-    };
+    const ds = await this.claimsClient.getById(id, requestId);
+    return toClaimDetails(ds);
   }
 }

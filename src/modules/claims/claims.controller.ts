@@ -11,13 +11,13 @@ export class ClaimsController {
 
   @Get()
   @ApiOkResponse({ description: "List claims" })
-  async list(@Query() query: GetClaimsQueryDto, @Req() req: any) {
+  list(@Query() query: GetClaimsQueryDto, @Req() req: any) {
     return this.claims.listClaims(query, req.requestId);
   }
 
   @Get(":id")
   @ApiOkResponse({ description: "Get claim by id" })
-  async getById(@Param("id") id: string, @Req() req: any) {
+  getById(@Param("id") id: string, @Req() req: any) {
     return this.claims.getClaimById(id, req.requestId);
   }
 }
