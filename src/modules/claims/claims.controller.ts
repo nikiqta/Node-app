@@ -1,23 +1,28 @@
-import { Controller, Get, Param, Query, Req } from "@nestjs/common";
-import { ApiBearerAuth, ApiOkResponse, ApiTags } from "@nestjs/swagger";
-import { ClaimsService } from "./claims.service";
-import { GetClaimsQueryDto } from "./dto/get-claims.query";
+import { Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
+import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ClaimsService } from './claims.service';
+import { GetClaimsQueryDto } from './dto/get-claims.query';
 
-@ApiTags("claims")
+@ApiTags('claims')
 @ApiBearerAuth()
-@Controller({ path: "claims", version: "1" })
+@Controller({ path: 'claims', version: '1' })
 export class ClaimsController {
   constructor(private readonly claims: ClaimsService) {}
 
+  @Post()
+  async loginClient() {
+    return this.claims.loginClient();
+  }
+
   @Get()
-  @ApiOkResponse({ description: "List claims" })
+  @ApiOkResponse({ description: 'List claims' })
   list(@Query() query: GetClaimsQueryDto, @Req() req: any) {
     return this.claims.listClaims(query, req.requestId);
   }
 
-  @Get(":id")
-  @ApiOkResponse({ description: "Get claim by id" })
-  getById(@Param("id") id: string, @Req() req: any) {
+  @Get(':id')
+  @ApiOkResponse({ description: 'Get claim by id' })
+  getById(@Param('id') id: string, @Req() req: any) {
     return this.claims.getClaimById(id, req.requestId);
   }
 }
